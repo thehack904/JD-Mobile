@@ -31,6 +31,25 @@ Open:
 http://<JD_HOST>:3128/help
 ```
 
+### Enabling JDownloader's Local API (port 3128)
+
+JDownloader's Local API on port 3128 is a **deprecated but still functional** API that JD-Mobile relies on. It is **not enabled by default** in newer versions of JDownloader 2. Follow these steps to enable it:
+
+1. Open **JDownloader 2**.
+2. Go to **Settings** → **Advanced Settings** (the gear icon).
+3. In the filter/search field at the top, type `RemoteAPI`.
+4. Find `org.jdownloader.api.RemoteAPIConfig.enabled` and set it to **`true`**.
+5. Confirm `org.jdownloader.api.RemoteAPIConfig.port` is set to **`3128`**.
+6. Restart JDownloader for the changes to take effect.
+
+Verify the API is active by visiting:
+
+```
+http://<JD_HOST>:3128/help
+```
+
+> **Note:** This is JDownloader's legacy local API (deprecated in favor of MyJDownloader). JD-Mobile requires it to communicate with your local JDownloader instance over LAN/VPN.
+
 > JD-Mobile uses a persistent config file: `/app/config/config.json`.  
 > Mount `/app/config` to a host path to keep settings across container upgrades.
 

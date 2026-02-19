@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="text-muted small">Packages</div>
+  <a class="btn btn-primary btn-sm" href="/add">Add</a>
+</div>
+
+{% if not packages %}
+  <div class="card"><div class="card-body">No packages (or JD API not reachable).</div></div>
+{% endif %}
+
+<div class="list-group">
+  {% for p in packages %}
+    <div class="list-group-item">
+      <div class="d-flex justify-content-between">
+        <div class="fw-semibold text-truncate" style="max-width: 75%;">{{ p.get("name","(no name)") }}</div>
+        <div class="text-muted small">
+          {% if p.get("running") %}RUN{% elif p.get("finished") %}DONE{% else %}IDLE{% endif %}
+        </div>
+      </div>
+      <div class="small text-muted mt-1">
+        {{ (p.get("bytesLoaded",0) / 1024 / 1024) | round(1) }} MB /
+        {{ (p.get("bytesTotal",0) / 1024 / 1024) | round(1) }} MB
+        · ETA: {{ p.get("eta","-") }}
+        · Speed: {{ p.get("speed","-") }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

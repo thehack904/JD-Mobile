@@ -1,0 +1,28 @@
+# Roadmap
+
+## v0.1 - Local MVP (this repo)
+- [x] Mobile-first UI
+- [x] Manual setup wizard (single instance)
+- [x] Add links (LinkGrabber)
+- [x] Packages/Downloads overview
+- [x] Persistent config (config.json) with validation to prevent crashes
+- [ ] Start/stop controls (pending confirmation of endpoints on your pinned JD build)
+
+## v0.2 - Setup Wizard + Smart Discovery
+- [ ] Wizard Step 1: Manual vs Auto-detect choice
+- [ ] Explicit scan permission + scan scope control (default /24)
+- [ ] Validate via `http://HOST:3128/help`
+- [ ] Connection test tooling + clearer error UX
+- [ ] Reverse-proxy friendly docs (NPM/Traefik)
+
+## v0.3 - Multi-Instance + Unified Control
+- [ ] Store and manage multiple JD instances in a single UI
+- [ ] Auto-detect accepts multiple subnets / seed hosts
+- [ ] Instance switcher + per-instance status badge
+- [ ] Offline instance handling (no cross-fire, safe scoping)
+
+## v0.4 - MyJDownloader Fallback Provider
+- [ ] Implement MyJDownloader provider
+- [ ] Per-instance provider config (Local primary, MyJD fallback)
+- [ ] Auto failover (Local -> MyJD) when local unreachable
+- [ ] Token caching/refresh, device selection, diagnostics

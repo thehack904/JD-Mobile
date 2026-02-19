@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">First-run setup</h5>
+    <p class="text-muted mb-2">JD-Mobile needs the URL to your JDownloader Local API. You should be able to open <code>http://&lt;JD_HOST&gt;:3128/help</code> from your LAN/VPN.</p>
+
+    {% if not config_writable %}
+      <div class="alert alert-danger">
+        <strong>Persistence not configured:</strong> <code>{{ cfg.path }}</code> is not writable.
+        Ensure you mounted a host path to <code>/app/config</code> (see README) so settings survive restarts/upgrades.
+      </div>
+    {% endif %}
+
+    <div class="alert alert-secondary mb-3">
+      <div><strong>Config path:</strong> <code>{{ cfg.path }}</code></div>
+      {% if cfg.errors %}
+      <div class="mt-2"><strong>Notes:</strong>
+        <ul class="mb-0">
+          {% for e in cfg.errors %}
+            <li>{{ e }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+
+    <h6 class="mb-2">Manual setup (v0.1)</h6>
+    <form method="post" action="/setup/manual">
+      <div class="mb-2">
+        <label class="form-label">JDownloader Base URL</label>
+        <input class="form-control" name="base_url" placeholder="http://truenas.lan:3128" required>
+        <div class="form-text">Include scheme and port. Example: <code>http://truenas.lan:3128</code></div>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-7">
+          <label class="form-label">Instance name</label>
+          <input class="form-control" name="name" placeholder="Primary" value="Primary">
+        </div>
+        <div class="col-5">
+          <label class="form-label">Timeout (ms)</label>
+          <input class="form-control" name="timeout_ms" type="number" min="100" max="60000" value="800">
+        </div>
+      </div>
+
+      <div class="mt-3 d-grid">
+        <button class="btn btn-primary" {% if not config_writable %}disabled{% endif %}>Test + Save</button>
+      </div>
+    </form>
+
+    <hr class="my-3">
+
+    <h6 class="mb-2 text-muted">Auto-detect (planned v0.2)</h6>
+    <button class="btn btn-outline-secondary w-100" disabled>Auto-detect on local network (coming soon)</button>
+  </div>
+</div>
+{% endblock %}

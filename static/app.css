@@ -1,0 +1,4 @@
+/* Minimal tweaks for mobile */
+.navbar-brand { font-weight: 600; }
+.list-group-item { border-radius: 0.75rem; margin-bottom: 0.5rem; }
+.card { border-radius: 1rem; }

@@ -6,6 +6,9 @@
 - [x] Add links (LinkGrabber)
 - [x] Packages/Downloads overview
 - [x] Persistent config (config.json) with validation to prevent crashes
+- [x] Remove packages (keep or delete files from disk)
+- [x] Live auto-refresh — Downloads page polls every 3 s, no manual reload needed
+- [x] Select specific files before downloading (per-link file picker with auto-poll while JD crawls)
 - [ ] Start/stop controls (pending confirmation of endpoints on your pinned JD build)
 
 ## v0.2 - Setup Wizard + Smart Discovery

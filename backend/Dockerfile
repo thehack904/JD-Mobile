@@ -11,6 +11,7 @@ COPY templates /app/templates
 COPY static /app/static
 
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8086
 EXPOSE 8086
 
-CMD ["gunicorn", "-b", "0.0.0.0:8086", "backend.app:app", "--workers", "2", "--threads", "4"]
+CMD ["sh", "-c", "exec gunicorn -k gthread -w 1 --threads 8 --bind 0.0.0.0:${PORT} backend.app:app"]

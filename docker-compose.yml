@@ -9,5 +9,5 @@ services:
     volumes:
       - ${JD_MOBILE_HOST_CONFIG_DIR}:/app/config
     ports:
-      - "${JD_MOBILE_PORT:-8086}:8080"
+      - "${JD_MOBILE_PORT:-8086}:8086"
     restart: unless-stopped

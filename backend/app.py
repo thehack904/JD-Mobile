@@ -5,7 +5,7 @@ import time
 from typing import Optional
 
 import requests
-from flask import Flask, flash, g, redirect, render_template, request, url_for
+from flask import Flask, flash, g, jsonify, redirect, render_template, request, url_for
 
 from .config_manager import ConfigManager
 from .providers.local_api import LocalProvider
@@ -183,6 +183,16 @@ def remove_package():
         flash(f"Failed to remove package: {e}", "danger")
 
     return redirect(url_for("index"))
+
+@app.get("/api/packages")
+def api_packages():
+    provider = _get_active_local_provider()
+    try:
+        packages = provider.get_packages()
+    except Exception as e:
+        app.logger.error("api_packages error: %s", e)
+        return jsonify({"ok": False, "error": "Failed to fetch packages", "packages": []}), 502
+    return jsonify({"ok": True, "packages": packages})
 
 @app.get("/health")
 def health():

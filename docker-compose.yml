@@ -1,11 +1,16 @@
 services:
   jd-mobile:
-    image: ghcr.io/thehack904/jd-mobile:latest
     container_name: jd-mobile
+    image: ghcr.io/thehack904/jd-mobile:latest
+    restart: unless-stopped
+    ports:
+     - "8086:8086"
     environment:
       - JD_MOBILE_CONFIG_PATH=${JD_MOBILE_CONFIG_PATH:-/app/config/config.json}
     volumes:
-      - ${JD_MOBILE_HOST_CONFIG_DIR}:/app/config
-    ports:
-      - "0.0.0.0:${JD_MOBILE_PORT:-8086}:8086"
-    restart: unless-stopped
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

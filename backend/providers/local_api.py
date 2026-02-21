@@ -65,4 +65,4 @@ class LocalProvider(Provider):
         return self._get("linkgrabberv2/addLinks", q)
 
     def remove_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
-        return self._action("downloadsV2/removePackages", linkIds=link_ids or [], packageIds=package_ids)
+        return self._action("downloadsV2/removeLinks", linkIds=link_ids or [], packageIds=package_ids)

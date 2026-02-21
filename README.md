@@ -108,7 +108,7 @@ Then JD-Mobile will persist its config at:
 
 - `/mnt/tank/apps/jd-mobile/config/config.json`
 
-## Features (v0.2)
+## Features (v0.1)
 
 - Setup wizard (manual host entry)
 - Add links (LinkGrabber)

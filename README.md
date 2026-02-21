@@ -53,6 +53,51 @@ http://<JD_HOST>:3128/help
 > JD-Mobile uses a persistent config file: `/app/config/config.json`.  
 > Mount `/app/config` to a host path to keep settings across container upgrades.
 
+## Usage
+
+### Adding links
+
+1. Open JD-Mobile in your browser (`http://<host>:8086`).
+2. Tap **Add** in the top-right corner of the Downloads page.
+3. Paste one or more URLs into the **Links** box (one per line, or paste a block).
+4. *(Optional)* Change the **Package** name or set a custom **Destination** folder.
+5. Leave **Autostart** enabled if you want downloads to begin immediately.
+6. Tap **Send to LinkGrabber**.  
+   The links are queued in JDownloader and the Downloads page will refresh automatically.
+
+### Selecting specific files before downloading
+
+Use this when a link contains multiple files and you only want some of them.
+
+1. On the Add Links page, enable the **"Select files before downloading"** toggle.
+2. Tap **Send to LinkGrabber**.
+3. You are taken to the **Select files** screen.  
+   If JDownloader is still crawling the link the list will refresh automatically every few seconds — wait for all files to appear.
+4. Check the files you want to download and uncheck the ones you do not.  
+   Use the **All** / **None** buttons to quickly select or deselect everything.
+5. Tap **Start selected downloads** to move the checked files to the download queue.  
+   Unchecked files are automatically removed from the LinkGrabber queue.
+6. Tap **Discard all & cancel** if you change your mind and want to clear everything.
+
+### Monitoring downloads (live auto-refresh)
+
+The Downloads page polls JDownloader every **3 seconds** and automatically updates:
+
+- Package name and current status (`IDLE`, `RUN`, `DONE`)
+- Downloaded / total size (MB)
+- ETA and current speed
+
+No manual page refresh is needed.
+
+### Removing a package
+
+1. On the Downloads page, find the package you want to remove.
+2. Tap the red **Remove** button next to it.
+3. A dialog will ask what to do with the downloaded files:
+   - **Keep all downloaded files on hard disk** — removes the package from JDownloader but leaves the files in place.
+   - **Delete downloaded files from hard disk** — removes the package *and* permanently deletes the associated files.
+4. Tap your choice to confirm.
+
 ## TrueNAS (recommended bind mount)
 
 Set `JD_MOBILE_HOST_CONFIG_DIR` in `.env` to a dataset path such as:
@@ -63,11 +108,13 @@ Then JD-Mobile will persist its config at:
 
 - `/mnt/tank/apps/jd-mobile/config/config.json`
 
-## Features (v0.1)
+## Features (v0.2)
 
 - Setup wizard (manual host entry)
 - Add links (LinkGrabber)
-- Packages overview (Downloads)
+- **Select specific files** from a pasted link before downloading
+- Packages overview (Downloads) with **live auto-refresh** (no manual reload needed)
+- **Remove packages** — keep or delete files from disk
 
 ## Security
 

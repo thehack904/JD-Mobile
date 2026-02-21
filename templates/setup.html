@@ -27,11 +27,22 @@
 
     <h6 class="mb-2">Manual setup (v0.1)</h6>
     <form method="post" action="/setup/manual">
-      <div class="mb-2">
-        <label class="form-label">JDownloader Base URL</label>
-        <input class="form-control" name="base_url" placeholder="http://truenas.lan:3128" required>
-        <div class="form-text">Include scheme and port. Example: <code>http://truenas.lan:3128</code></div>
-      </div>
+<div class="mb-2">
+  <label class="form-label">JDownloader Base URL</label>
+  <input class="form-control" name="base_url" placeholder="http://192.168.1.50:3129" required>
+
+  <div class="form-text">
+    Include scheme and port. Examples:
+    <ul class="mb-0">
+      <li><code>http://192.168.1.50:3129</code> (recommended; most reliable)</li>
+      <li><code>http://truenas.lan:3129</code> (hostname; requires working DNS inside Docker)</li>
+      <li><code>http://jdownloader:3128</code> (same Docker/k8s network; TrueNAS-style)</li>
+    </ul>
+    <div class="mt-1">
+      If a hostname like <code>truenas.lan</code> fails in Docker, use the server IP instead.
+    </div>
+  </div>
+</div>
 
       <div class="row g-2">
         <div class="col-7">

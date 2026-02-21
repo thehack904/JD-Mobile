@@ -12,10 +12,16 @@
 <div class="list-group">
   {% for p in packages %}
     <div class="list-group-item">
-      <div class="d-flex justify-content-between">
-        <div class="fw-semibold text-truncate" style="max-width: 75%;">{{ p.get("name","(no name)") }}</div>
-        <div class="text-muted small">
-          {% if p.get("running") %}RUN{% elif p.get("finished") %}DONE{% else %}IDLE{% endif %}
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="fw-semibold text-truncate" style="max-width: 70%;">{{ p.get("name","(no name)") }}</div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="text-muted small">
+            {% if p.get("running") %}RUN{% elif p.get("finished") %}DONE{% else %}IDLE{% endif %}
+          </div>
+          <form method="post" action="/remove" onsubmit="return confirm('Remove this package?');">
+            <input type="hidden" name="package_id" value="{{ p.get('uuid','') }}">
+            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+          </form>
         </div>
       </div>
       <div class="small text-muted mt-1">

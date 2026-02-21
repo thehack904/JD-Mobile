@@ -28,6 +28,7 @@ class LocalProvider(Provider):
     def get_packages(self) -> List[Dict[str, Any]]:
         q = {
             "name": True,
+            "uuid": True,
             "bytesTotal": True,
             "bytesLoaded": True,
             "enabled": True,
@@ -49,3 +50,6 @@ class LocalProvider(Provider):
         if dest:
             q["destinationFolder"] = dest
         return self._get("linkgrabberv2/addLinks", q)
+
+    def remove_packages(self, package_ids: List[int]) -> Dict[str, Any]:
+        return self._get("downloadsV2/removePackages", {"packageIds": package_ids})

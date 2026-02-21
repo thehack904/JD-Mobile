@@ -153,6 +153,27 @@ def add_submit():
 
     return redirect(url_for("index"))
 
+@app.post("/remove")
+def remove_package():
+    pkg_id = request.form.get("package_id")
+    if not pkg_id:
+        flash("No package specified.", "warning")
+        return redirect(url_for("index"))
+    try:
+        pkg_id_int = int(pkg_id)
+    except (ValueError, TypeError):
+        flash("Invalid package ID.", "danger")
+        return redirect(url_for("index"))
+
+    provider = _get_active_local_provider()
+    try:
+        provider.remove_packages([pkg_id_int])
+        flash("Package removed.", "success")
+    except Exception as e:
+        flash(f"Failed to remove package: {e}", "danger")
+
+    return redirect(url_for("index"))
+
 @app.get("/health")
 def health():
     if g.cfg.needs_setup:

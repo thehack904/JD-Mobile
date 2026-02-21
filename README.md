@@ -9,7 +9,28 @@ JD-Mobile is a **self-hosted, mobile-friendly web UI** for controlling a local *
 - **Persistent config** stored under `/app/config` (survives restarts/upgrades with a bind mount)
 - Roadmap: **MyJDownloader cloud fallback** provider
 
-## Quick start (Docker Compose)
+## Quick start 
+(TrueNAS - Custom App)
+1. Apps → Custom App → ⋮ → Install via YAML
+2. Copy / Paste
+
+```bash
+services:
+  jd-mobile:
+    image: ghcr.io/thehack904/jd-mobile:latest
+    environment:
+      JD_MOBILE_CONFIG_PATH: /app/config/config.json
+    volumes:
+      - jd_mobile_config:/app/config
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+
+volumes:
+  jd_mobile_config:
+```
+
+(Docker Compose)
 
 1. Copy / Run:
 

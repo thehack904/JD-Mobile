@@ -10,7 +10,12 @@ from flask import Flask, flash, g, redirect, render_template, request, url_for
 from .config_manager import ConfigManager
 from .providers.local_api import LocalProvider
 
-app = Flask(__name__)
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(_ROOT, "templates"),
+    static_folder=os.path.join(_ROOT, "static"),
+)
 app.secret_key = os.environ.get("FLASK_SECRET", "change-me")
 
 cfg_mgr = ConfigManager()

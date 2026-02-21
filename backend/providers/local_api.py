@@ -25,9 +25,23 @@ class LocalProvider(Provider):
             # Some JD endpoints may respond with plain text; wrap it.
             return {"data": r.text}
 
+    def _action(self, path: str, **kwargs: Any) -> Dict[str, Any]:
+        """Call a JD2 action endpoint that takes named parameters as individual
+        JSON-encoded query string values (e.g. removePackages(long[] linkIds, long[] packageIds)).
+        Each kwarg value is JSON-encoded regardless of type."""
+        url = f"{self.base_url}/{path.lstrip('/')}"
+        params = {k: json.dumps(v) for k, v in kwargs.items()}
+        r = requests.get(url, params=params, timeout=self.timeout)
+        r.raise_for_status()
+        try:
+            return r.json()
+        except Exception:
+            return {"data": r.text}
+
     def get_packages(self) -> List[Dict[str, Any]]:
         q = {
             "name": True,
+            "uuid": True,
             "bytesTotal": True,
             "bytesLoaded": True,
             "enabled": True,
@@ -49,3 +63,16 @@ class LocalProvider(Provider):
         if dest:
             q["destinationFolder"] = dest
         return self._get("linkgrabberv2/addLinks", q)
+
+    def remove_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        return self._action("downloadsV2/removeLinks", linkIds=link_ids or [], packageIds=package_ids)
+
+    def cleanup_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        return self._action(
+            "downloadsV2/cleanup",
+            linkIds=link_ids or [],
+            packageIds=package_ids,
+            action="DELETE_ALL",
+            mode="REMOVE_LINKS_AND_DELETE_FILES",
+            selectionType="SELECTED",
+        )

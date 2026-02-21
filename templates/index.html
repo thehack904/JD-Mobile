@@ -18,10 +18,10 @@
           <div class="text-muted small">
             {% if p.get("running") %}RUN{% elif p.get("finished") %}DONE{% else %}IDLE{% endif %}
           </div>
-          <form method="post" action="/remove" onsubmit="return confirm('Remove this package?');">
-            <input type="hidden" name="package_id" value="{{ p.get('uuid','') }}">
-            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-          </form>
+          <button type="button" class="btn btn-danger btn-sm"
+                  data-bs-toggle="modal" data-bs-target="#removeModal"
+                  data-pkg-id="{{ p.get('uuid','') }}"
+                  data-pkg-name="{{ p.get('name','') | e }}">Remove</button>
         </div>
       </div>
       <div class="small text-muted mt-1">
@@ -33,4 +33,43 @@
     </div>
   {% endfor %}
 </div>
+
+<div class="modal fade" id="removeModal" tabindex="-1" aria-labelledby="removeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="removeModalLabel">Remove package</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">What should happen to the downloaded files?</p>
+        <p class="text-muted small mb-0 js-pkg-name"></p>
+      </div>
+      <div class="modal-footer flex-column gap-2 align-items-stretch">
+        <form method="post" action="/remove">
+          <input type="hidden" name="package_id" class="js-pkg-id">
+          <input type="hidden" name="delete_files" value="false">
+          <button type="submit" class="btn btn-outline-secondary w-100">Keep all downloaded files on hard disk</button>
+        </form>
+        <form method="post" action="/remove">
+          <input type="hidden" name="package_id" class="js-pkg-id">
+          <input type="hidden" name="delete_files" value="true">
+          <button type="submit" class="btn btn-danger w-100">Delete downloaded files from hard disk</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('removeModal').addEventListener('show.bs.modal', function(event) {
+  var btn = event.relatedTarget;
+  if (!btn) { return; }
+  var pkgId = btn.getAttribute('data-pkg-id');
+  var pkgName = btn.getAttribute('data-pkg-name');
+  if (!pkgId) { return; }
+  this.querySelectorAll('.js-pkg-id').forEach(function(el) { el.value = pkgId; });
+  this.querySelector('.js-pkg-name').textContent = pkgName || '';
+});
+</script>
 {% endblock %}

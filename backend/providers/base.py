@@ -14,3 +14,7 @@ class Provider(ABC):
     @abstractmethod
     def remove_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
         raise NotImplementedError
+
+    @abstractmethod
+    def cleanup_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        raise NotImplementedError

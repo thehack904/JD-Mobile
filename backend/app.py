@@ -161,6 +161,7 @@ def add_submit():
 @app.post("/remove")
 def remove_package():
     pkg_id = request.form.get("package_id")
+    delete_files = request.form.get("delete_files") == "true"
     if not pkg_id:
         flash("No package specified.", "warning")
         return redirect(url_for("index"))
@@ -172,8 +173,12 @@ def remove_package():
 
     provider = _get_active_local_provider()
     try:
-        provider.remove_packages([pkg_id_int])
-        flash("Package removed.", "success")
+        if delete_files:
+            provider.cleanup_packages([pkg_id_int])
+            flash("Package removed and files deleted.", "success")
+        else:
+            provider.remove_packages([pkg_id_int])
+            flash("Package removed (files kept on disk).", "success")
     except Exception as e:
         flash(f"Failed to remove package: {e}", "danger")
 

@@ -66,3 +66,13 @@ class LocalProvider(Provider):
 
     def remove_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
         return self._action("downloadsV2/removeLinks", linkIds=link_ids or [], packageIds=package_ids)
+
+    def cleanup_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        return self._action(
+            "downloadsV2/cleanup",
+            linkIds=link_ids or [],
+            packageIds=package_ids,
+            action="DELETE_ALL",
+            mode="REMOVE_LINKS_AND_DELETE_FILES",
+            selectionType="SELECTED",
+        )

@@ -16,8 +16,10 @@
       <div class="list-group-item text-muted js-no-links">No links found in LinkGrabber yet. They may still be crawling — the list will refresh automatically.</div>
     {% endif %}
     {% for l in links %}
+      {% set uuid_str = l.get('uuid','')|string %}
+      {% set is_checked = selected_ids is none or uuid_str in selected_ids %}
       <label class="list-group-item d-flex gap-3 align-items-start">
-        <input class="form-check-input flex-shrink-0 mt-1 link-checkbox" type="checkbox" name="link_id" value="{{ l.get('uuid','') }}" checked>
+        <input class="form-check-input flex-shrink-0 mt-1 link-checkbox" type="checkbox" name="link_id" value="{{ uuid_str }}"{% if is_checked %} checked{% endif %}>
         <div class="flex-grow-1 overflow-hidden">
           <div class="fw-semibold text-truncate">{{ l.get("name") or l.get("url") or "(unnamed)" }}</div>
           <div class="text-muted small text-truncate">
@@ -31,7 +33,7 @@
           </div>
         </div>
       </label>
-      <input type="hidden" name="all_link_id" value="{{ l.get('uuid','') }}">
+      <input type="hidden" name="all_link_id" value="{{ uuid_str }}">
     {% endfor %}
   </div>
 
@@ -63,6 +65,14 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // IDs that were previously selected (restored after an error), stored as strings for comparison
+  var savedSelected = {% if selected_ids is not none %}{{ selected_ids | tojson }}{% else %}null{% endif %};
+
+  function isSelected(uuid) {
+    if (savedSelected === null) { return true; }
+    return savedSelected.indexOf(String(uuid)) !== -1;
+  }
+
   function renderLinks(links) {
     var list = document.getElementById('links-list');
     var form = document.getElementById('select-form');
@@ -82,11 +92,12 @@
       var uuid = l.uuid || '';
       var name = l.name || l.url || '(unnamed)';
       var meta = [l.host, bytesToMb(l.bytesTotal), l.availability].filter(Boolean).join(' · ');
+      var checked = isSelected(uuid) ? ' checked' : '';
 
       var label = document.createElement('label');
       label.className = 'list-group-item d-flex gap-3 align-items-start';
       label.innerHTML =
-        '<input class="form-check-input flex-shrink-0 mt-1 link-checkbox" type="checkbox" name="link_id" value="' + escHtml(uuid) + '" checked>' +
+        '<input class="form-check-input flex-shrink-0 mt-1 link-checkbox" type="checkbox" name="link_id" value="' + escHtml(uuid) + '"' + checked + '>' +
         '<div class="flex-grow-1 overflow-hidden">' +
           '<div class="fw-semibold text-truncate">' + escHtml(name) + '</div>' +
           '<div class="text-muted small text-truncate">' + escHtml(meta) + '</div>' +

@@ -91,7 +91,7 @@ class LocalProvider(Provider):
         return data.get("data", []) if isinstance(data, dict) else []
 
     def start_linkgrabber_downloads(self, link_ids: List[int], package_ids: Optional[List[int]] = None) -> Dict[str, Any]:
-        return self._action("linkgrabberv2/startDownloads", linkIds=link_ids, packageIds=package_ids or [])
+        return self._action("linkgrabberv2/moveToDownloadlist", linkIds=link_ids, packageIds=package_ids or [])
 
     def remove_linkgrabber_links(self, link_ids: List[int], package_ids: Optional[List[int]] = None) -> Dict[str, Any]:
         return self._action("linkgrabberv2/removeLinks", linkIds=link_ids, packageIds=package_ids or [])

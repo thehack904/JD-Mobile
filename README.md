@@ -116,36 +116,6 @@ Then JD-Mobile will persist its config at:
 - Packages overview (Downloads) with **live auto-refresh** (no manual reload needed)
 - **Remove packages** — keep or delete files from disk
 
-## GitHub Actions secrets (Docker Hub publishing)
-
-The workflow in `.github/workflows/docker-publish.yml` pushes built images to Docker Hub.
-It requires two repository secrets to be set before it can authenticate.
-
-**How to add them:**
-
-1. Go to your repository on GitHub.
-2. Click **Settings** → **Secrets and variables** → **Actions**.
-3. Click **New repository secret** and add each of the following:
-
-| Secret name | Value |
-|---|---|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username — `thehack904` |
-| `DOCKERHUB_TOKEN` | A Docker Hub access token (see below) |
-
-**How to create a Docker Hub access token:**
-
-1. Log in at <https://hub.docker.com>.
-2. Click your avatar (top-right) → **Account Settings** → **Personal access tokens**.
-3. Click **Generate new token**, give it a description (e.g. `jd-mobile-ci`), and set the permission to **Read & Write**.
-4. Copy the token — it is only shown once.
-5. Paste it as the value of the `DOCKERHUB_TOKEN` secret in step 3 above.
-
-Once both secrets are saved, the next push to `main` (or a `v*` tag) will publish the image to:
-
-```
-docker pull thehack904/jd-mobile:latest
-```
-
 ## Security
 
 - Do **not** expose port 3128 publicly.

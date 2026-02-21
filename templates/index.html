@@ -71,5 +71,73 @@ document.getElementById('removeModal').addEventListener('show.bs.modal', functio
   this.querySelectorAll('.js-pkg-id').forEach(function(el) { el.value = pkgId; });
   this.querySelector('.js-pkg-name').textContent = pkgName || '';
 });
+
+(function() {
+  var list = document.querySelector('.list-group');
+
+  function mbStr(bytes) {
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function statusText(p) {
+    if (p.running) { return 'RUN'; }
+    if (p.finished) { return 'DONE'; }
+    return 'IDLE';
+  }
+
+  function renderPackages(packages) {
+    list.innerHTML = '';
+    var noCard = document.querySelector('.js-no-packages');
+    if (packages.length === 0) {
+      if (!noCard) {
+        var c = document.createElement('div');
+        c.className = 'card js-no-packages';
+        c.innerHTML = '<div class="card-body">No packages (or JD API not reachable).</div>';
+        list.parentNode.insertBefore(c, list);
+      }
+      return;
+    }
+    if (noCard) { noCard.remove(); }
+    packages.forEach(function(p) {
+      var item = document.createElement('div');
+      item.className = 'list-group-item';
+      var name = p.name || '(no name)';
+      var pkgId = p.uuid || '';
+      item.innerHTML =
+        '<div class="d-flex justify-content-between align-items-start">' +
+          '<div class="fw-semibold text-truncate" style="max-width: 70%;">' + escHtml(name) + '</div>' +
+          '<div class="d-flex align-items-center gap-2">' +
+            '<div class="text-muted small">' + statusText(p) + '</div>' +
+            '<button type="button" class="btn btn-danger btn-sm"' +
+              ' data-bs-toggle="modal" data-bs-target="#removeModal"' +
+              ' data-pkg-id="' + escHtml(String(pkgId)) + '"' +
+              ' data-pkg-name="' + escHtml(name) + '">Remove</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="small text-muted mt-1">' +
+          mbStr(p.bytesLoaded || 0) + ' / ' + mbStr(p.bytesTotal || 0) +
+          ' · ETA: ' + escHtml(String(p.eta || '-')) +
+          ' · Speed: ' + escHtml(String(p.speed || '-')) +
+        '</div>';
+      list.appendChild(item);
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function poll() {
+    fetch('/api/packages')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) { renderPackages(data.packages); }
+      })
+      .catch(function(err) { console.error('Failed to poll packages:', err); })
+      .finally(function() { setTimeout(poll, 3000); });
+  }
+
+  setTimeout(poll, 3000);
+})();
 </script>
 {% endblock %}

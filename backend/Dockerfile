@@ -11,6 +11,6 @@ COPY templates /app/templates
 COPY static /app/static
 
 ENV PYTHONUNBUFFERED=1
-EXPOSE 8080
+EXPOSE 8086
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "backend.app:app", "--workers", "2", "--threads", "4"]
+CMD ["gunicorn", "-b", "0.0.0.0:8086", "backend.app:app", "--workers", "2", "--threads", "4"]

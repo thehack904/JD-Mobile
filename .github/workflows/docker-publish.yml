@@ -25,6 +25,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ---------- GHCR ----------
       - name: Log in to the Container registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -45,10 +49,7 @@ jobs:
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Docker image
+      - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -56,5 +57,41 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ---------- Docker Hub ----------
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker Hub
+        id: meta-dockerhub
+        uses: docker/metadata-action@v5
+        with:
+          images: thehack904/jd-mobile
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          # Docker Hub requires a single-arch image and provenance disabled
+          # to avoid manifest list issues that prevent images from appearing.
+          platforms: linux/amd64
+          provenance: false
+          tags: ${{ steps.meta-dockerhub.outputs.tags }}
+          labels: ${{ steps.meta-dockerhub.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

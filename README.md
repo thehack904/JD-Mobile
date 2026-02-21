@@ -11,16 +11,15 @@ JD-Mobile is a **self-hosted, mobile-friendly web UI** for controlling a local *
 
 ## Quick start (Docker Compose)
 
-1. Copy `.env.example` to `.env` and edit values.
-2. Run:
+1. Copy / Run:
 
 ```bash
-docker compose up -d --build
+docker run -d --name jd-mobile -p 8086:8086 -v "$PWD/config:/app/config" ghcr.io/thehack904/jd-mobile:latest
 ```
 
 Open:
 
-- `http://<host>:8086`
+- `http://<hostip>:8086`
 
 ### Requirements
 

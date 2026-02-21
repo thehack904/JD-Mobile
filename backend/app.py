@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Optional
+from typing import List, Optional
 
 import requests
-from flask import Flask, flash, g, jsonify, redirect, render_template, request, url_for
+from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 
 from .config_manager import ConfigManager
 from .providers.local_api import LocalProvider
@@ -144,6 +144,7 @@ def add_submit():
     package = (request.form.get("package") or "Mobile").strip()
     dest = (request.form.get("dest") or "").strip() or None
     autostart = (request.form.get("autostart") == "on")
+    select_files = (request.form.get("select_files") == "on")
 
     if not links:
         flash("Paste one or more links.", "warning")
@@ -151,11 +152,112 @@ def add_submit():
 
     provider = _get_active_local_provider()
     try:
-        provider.add_links(links=links, package=package, dest=dest, autostart=autostart)
+        # When the user wants to select files, never autostart so links stay in LinkGrabber
+        effective_autostart = autostart and not select_files
+        provider.add_links(links=links, package=package, dest=dest, autostart=effective_autostart)
+        if select_files:
+            flash("Links sent to LinkGrabber. Select the files you want to download below.", "info")
+            return redirect(url_for("links_select"))
         flash("Links submitted to LinkGrabber.", "success")
     except Exception as e:
         flash(f"Failed to add links: {e}", "danger")
 
+    return redirect(url_for("index"))
+
+
+@app.get("/links/select")
+def links_select():
+    provider = _get_active_local_provider()
+    try:
+        links = provider.get_linkgrabber_links()
+    except Exception as e:
+        links = []
+        flash(f"Failed to query LinkGrabber links: {e}", "danger")
+    # Restore any previously saved selection (set by links_start on error)
+    selected_ids = session.pop("selected_link_ids", None)
+    return render_template(
+        "select.html",
+        title=g.cfg.config.get("ui", {}).get("title", "JD-Mobile"),
+        links=links,
+        selected_ids=selected_ids,
+    )
+
+
+@app.get("/api/linkgrabber/links")
+def api_linkgrabber_links():
+    provider = _get_active_local_provider()
+    try:
+        links = provider.get_linkgrabber_links()
+    except Exception as e:
+        app.logger.error("api_linkgrabber_links error: %s", e)
+        return jsonify({"ok": False, "error": "Failed to fetch links", "links": []}), 502
+    return jsonify({"ok": True, "links": links})
+
+
+@app.post("/links/start")
+def links_start():
+    selected_ids = request.form.getlist("link_id")
+    all_ids = request.form.getlist("all_link_id")
+
+    if not selected_ids:
+        flash("No files selected.", "warning")
+        return redirect(url_for("links_select"))
+
+    link_ids: List[int] = []
+    for i in selected_ids:
+        try:
+            link_ids.append(int(i))
+        except (ValueError, TypeError):
+            pass
+
+    if not link_ids:
+        flash("No valid file IDs found.", "danger")
+        return redirect(url_for("links_select"))
+
+    # Determine which links were NOT selected so we can discard them
+    all_link_ids: List[int] = []
+    for i in all_ids:
+        try:
+            all_link_ids.append(int(i))
+        except (ValueError, TypeError):
+            pass
+    unselected_ids = [i for i in all_link_ids if i not in link_ids]
+
+    provider = _get_active_local_provider()
+    try:
+        # Remove unselected links from the LinkGrabber queue first
+        if unselected_ids:
+            provider.remove_linkgrabber_links(link_ids=unselected_ids)
+        provider.start_linkgrabber_downloads(link_ids=link_ids)
+        flash(f"Started downloading {len(link_ids)} file(s).", "success")
+    except Exception as e:
+        # Preserve the user's selection so the page can restore it
+        session["selected_link_ids"] = [str(i) for i in link_ids]
+        flash(f"Failed to start downloads: {e}", "danger")
+        return redirect(url_for("links_select"))
+
+    return redirect(url_for("index"))
+
+
+@app.post("/links/cancel")
+def links_cancel():
+    all_link_ids = request.form.getlist("all_link_id")
+    link_ids: List[int] = []
+    for i in all_link_ids:
+        try:
+            link_ids.append(int(i))
+        except (ValueError, TypeError):
+            pass
+
+    if link_ids:
+        provider = _get_active_local_provider()
+        try:
+            provider.remove_linkgrabber_links(link_ids=link_ids)
+        except Exception as e:
+            flash(f"Failed to cancel links: {e}", "danger")
+            return redirect(url_for("links_select"))
+
+    flash("LinkGrabber links discarded.", "info")
     return redirect(url_for("index"))
 
 @app.post("/remove")

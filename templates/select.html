@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="text-muted small">Select files to download</div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-select-all">All</button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-deselect-all">None</button>
+  </div>
+</div>
+
+<div id="loading-notice" class="alert alert-info d-none">Crawling links&hellip; refreshing.</div>
+
+<form method="post" action="/links/start" id="select-form">
+  <div class="list-group mb-3" id="links-list">
+    {% if not links %}
+      <div class="list-group-item text-muted js-no-links">No links found in LinkGrabber yet. They may still be crawling — the list will refresh automatically.</div>
+    {% endif %}
+    {% for l in links %}
+      {% set uuid_str = l.get('uuid','')|string %}
+      {% set is_checked = selected_ids is none or uuid_str in selected_ids %}
+      <label class="list-group-item d-flex gap-3 align-items-start">
+        <input class="form-check-input flex-shrink-0 mt-1 link-checkbox" type="checkbox" name="link_id" value="{{ uuid_str }}"{% if is_checked %} checked{% endif %}>
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="fw-semibold text-truncate">{{ l.get("name") or l.get("url") or "(unnamed)" }}</div>
+          <div class="text-muted small text-truncate">
+            {{ l.get("host","") }}
+            {% if l.get("bytesTotal") %}
+              · {{ (l["bytesTotal"] / 1024 / 1024) | round(1) }} MB
+            {% endif %}
+            {% if l.get("availability") %}
+              · {{ l["availability"] }}
+            {% endif %}
+          </div>
+        </div>
+      </label>
+      <input type="hidden" name="all_link_id" value="{{ uuid_str }}">
+    {% endfor %}
+  </div>
+
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-primary" id="btn-start">Start selected downloads</button>
+  </div>
+</form>
+
+<form method="post" action="/links/cancel" id="cancel-form" class="mt-2">
+  {% for l in links %}
+    <input type="hidden" name="all_link_id" value="{{ l.get('uuid','') }}">
+  {% endfor %}
+  <div class="d-grid">
+    <button type="submit" class="btn btn-outline-danger">Discard all &amp; cancel</button>
+  </div>
+</form>
+
+<script>
+(function() {
+  var pollInterval = 3000;
+  var maxPolls = 20;
+  var polls = 0;
+
+  function bytesToMb(b) {
+    return b ? (b / 1024 / 1024).toFixed(1) + ' MB' : '';
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // IDs that were previously selected (restored after an error), stored as strings for comparison
+  var savedSelected = {% if selected_ids is not none %}{{ selected_ids | tojson }}{% else %}null{% endif %};
+
+  function isSelected(uuid) {
+    if (savedSelected === null) { return true; }
+    return savedSelected.indexOf(String(uuid)) !== -1;
+  }
+
+  function renderLinks(links) {
+    var list = document.getElementById('links-list');
+    var form = document.getElementById('select-form');
+    var cancelForm = document.getElementById('cancel-form');
+
+    // Rebuild the link list
+    list.innerHTML = '';
+    if (links.length === 0) {
+      list.innerHTML = '<div class="list-group-item text-muted js-no-links">No links found in LinkGrabber. They may still be crawling.</div>';
+    }
+
+    // Clear hidden inputs from both forms
+    form.querySelectorAll('input[name="all_link_id"]').forEach(function(el) { el.remove(); });
+    cancelForm.querySelectorAll('input[name="all_link_id"]').forEach(function(el) { el.remove(); });
+
+    links.forEach(function(l) {
+      var uuid = l.uuid || '';
+      var name = l.name || l.url || '(unnamed)';
+      var meta = [l.host, bytesToMb(l.bytesTotal), l.availability].filter(Boolean).join(' · ');
+      var checked = isSelected(uuid) ? ' checked' : '';
+
+      var label = document.createElement('label');
+      label.className = 'list-group-item d-flex gap-3 align-items-start';
+      label.innerHTML =
+        '<input class="form-check-input flex-shrink-0 mt-1 link-checkbox" type="checkbox" name="link_id" value="' + escHtml(uuid) + '"' + checked + '>' +
+        '<div class="flex-grow-1 overflow-hidden">' +
+          '<div class="fw-semibold text-truncate">' + escHtml(name) + '</div>' +
+          '<div class="text-muted small text-truncate">' + escHtml(meta) + '</div>' +
+        '</div>';
+      list.appendChild(label);
+
+      // Hidden all_link_id for both forms
+      var hiddenSelect = document.createElement('input');
+      hiddenSelect.type = 'hidden';
+      hiddenSelect.name = 'all_link_id';
+      hiddenSelect.value = uuid;
+      form.appendChild(hiddenSelect);
+
+      var hiddenCancel = document.createElement('input');
+      hiddenCancel.type = 'hidden';
+      hiddenCancel.name = 'all_link_id';
+      hiddenCancel.value = uuid;
+      cancelForm.appendChild(hiddenCancel);
+    });
+  }
+
+  function poll() {
+    if (polls >= maxPolls) {
+      var notice = document.getElementById('loading-notice');
+      notice.textContent = 'Crawling timed out. No links found in LinkGrabber. Try adding the links again.';
+      notice.classList.remove('d-none');
+      notice.classList.replace('alert-info', 'alert-warning');
+      return;
+    }
+    polls++;
+    fetch('/api/linkgrabber/links')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          renderLinks(data.links);
+          if (data.links.length === 0 && polls < maxPolls) {
+            document.getElementById('loading-notice').classList.remove('d-none');
+            setTimeout(poll, pollInterval);
+          } else {
+            document.getElementById('loading-notice').classList.add('d-none');
+          }
+        }
+      })
+      .catch(function(err) { console.error('Failed to poll links:', err); });
+  }
+
+  document.getElementById('btn-select-all').addEventListener('click', function() {
+    document.querySelectorAll('.link-checkbox').forEach(function(cb) { cb.checked = true; });
+  });
+  document.getElementById('btn-deselect-all').addEventListener('click', function() {
+    document.querySelectorAll('.link-checkbox').forEach(function(cb) { cb.checked = false; });
+  });
+
+  // Start polling only if there are no links yet
+  {% if not links %}
+  document.getElementById('loading-notice').classList.remove('d-none');
+  setTimeout(poll, pollInterval);
+  {% endif %}
+})();
+</script>
+{% endblock %}

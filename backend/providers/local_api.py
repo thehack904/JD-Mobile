@@ -76,3 +76,22 @@ class LocalProvider(Provider):
             mode="REMOVE_LINKS_AND_DELETE_FILES",
             selectionType="SELECTED",
         )
+
+    def get_linkgrabber_links(self) -> List[Dict[str, Any]]:
+        q = {
+            "name": True,
+            "uuid": True,
+            "packageUUID": True,
+            "url": True,
+            "bytesTotal": True,
+            "host": True,
+            "availability": True,
+        }
+        data = self._get("linkgrabberv2/queryLinks", q)
+        return data.get("data", []) if isinstance(data, dict) else []
+
+    def start_linkgrabber_downloads(self, link_ids: List[int], package_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        return self._action("linkgrabberv2/moveToDownloadlist", linkIds=link_ids, packageIds=package_ids or [])
+
+    def remove_linkgrabber_links(self, link_ids: List[int], package_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        return self._action("linkgrabberv2/removeLinks", linkIds=link_ids, packageIds=package_ids or [])

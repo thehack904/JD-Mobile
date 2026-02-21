@@ -18,3 +18,15 @@ class Provider(ABC):
     @abstractmethod
     def cleanup_packages(self, package_ids: List[int], link_ids: Optional[List[int]] = None) -> Dict[str, Any]:
         raise NotImplementedError
+
+    @abstractmethod
+    def get_linkgrabber_links(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def start_linkgrabber_downloads(self, link_ids: List[int], package_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_linkgrabber_links(self, link_ids: List[int], package_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        raise NotImplementedError
